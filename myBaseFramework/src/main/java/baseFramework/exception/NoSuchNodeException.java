@@ -1,7 +1,5 @@
 package baseFramework.exception;
 
-import baseFramework.utils.StringTools;
-
 /**
  * @author chao.li
  * @date 2016年11月30日
@@ -13,16 +11,56 @@ public class NoSuchNodeException extends BaseException {
 		super(message);
 	}
 
-	public NoSuchNodeException(String messageFormat, Object... messages) {
-		super(StringTools.format(messageFormat, messages));
+	/**
+	 * no message (replaced by exception name)
+	 * 
+	 * @param formatter
+	 *            log-msg-formatter
+	 * @param params
+	 *            log-msg-params
+	 */
+	public NoSuchNodeException(String formatter, Object... params) {
+		super(formatter, params);
+	}
+
+	/**
+	 * @param message
+	 *            msg
+	 * @param formatter
+	 *            log-msg-formatter
+	 * @param params
+	 *            log-msg-params
+	 */
+	public NoSuchNodeException(String message, String formatter, Object... params) {
+		super(message, formatter, params);
 	}
 
 	public NoSuchNodeException(Throwable cause, String message) {
-		super(message, cause);
+		super(cause, message);
 	}
 
-	public NoSuchNodeException(Throwable cause, String messageFormat, Object... messages) {
-		super(StringTools.format(messageFormat, messages), cause);
+	/**
+	 * no message (replaced by exception name)
+	 * 
+	 * @param formatter
+	 *            log-msg-formatter
+	 * @param params
+	 *            log-msg-params
+	 */
+	public NoSuchNodeException(Throwable cause, String formatter, Object... params) {
+		super(cause, formatter, params);
+	}
+
+	/**
+	 * @param message
+	 *            msg
+	 * @param formatter
+	 *            log-msg-formatter
+	 * @param params
+	 *            log-msg-params
+	 */
+	public NoSuchNodeException(Throwable cause, String message, String formatter, Object... params) {
+		super(cause, message, formatter, params);
 	}
 
 }

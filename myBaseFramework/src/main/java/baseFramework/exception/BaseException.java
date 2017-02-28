@@ -89,4 +89,11 @@ public class BaseException extends RuntimeException {
 		}
 	}
 
+	@Override
+	public String toString() {
+		String name = getClass().getSimpleName();
+		String message = getLocalizedMessage();
+		return (message != null) ? (name + ":" + message) : name;
+	}
+
 }

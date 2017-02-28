@@ -70,7 +70,7 @@ public class ConfigServer {
 				this.reloadOnPropertyChange(propertyInfo);
 
 			} catch (Exception e) {
-				logger.error(StringTools.format("change property error! %s.%s, path:%s, value:%s, local:%s, remote:%s",
+				logger.error(StringTools.format("change property error! {}.{}, path:{}, value:{}, local:{}, remote:{}",
 						propertyInfo.getClazz().getSimpleName(), propertyInfo.getField().getName(),
 						propertyInfo.getPath(), value, propertyInfo.getLocalValue(), propertyInfo.getRemoteValue()), e);
 			}
@@ -83,7 +83,7 @@ public class ConfigServer {
 				((ReloadProperty) propertyInfo.getObj()).reloadOnPropertyChange();
 				logger.info("reload object({}) success!", propertyInfo.getClazz().getSimpleName());
 			} catch (Exception e) {
-				throw new ServerException(e, "reload object(%s) error!", propertyInfo.getClazz().getSimpleName());
+				throw new ServerException(e, "reload object({}) error!", propertyInfo.getClazz().getSimpleName());
 			}
 		}
 	}
@@ -170,7 +170,7 @@ public class ConfigServer {
 				((ReloadProperty) object).reloadOnPropertyChange();
 				logger.info("reload object({}) success!", clazz.getSimpleName());
 			} catch (Exception e) {
-				throw new ServerException(e, "reload object(%s) error!", clazz.getSimpleName());
+				throw new ServerException(e, "reload object({}) error!", clazz.getSimpleName());
 			}
 		}
 		logger.info("init object({}) end!", clazz.getSimpleName());
@@ -191,7 +191,7 @@ public class ConfigServer {
 
 			setValue(value, propertyInfo);
 		} catch (Exception e) {
-			throw new ServerException(e, "init property error! %s.%s path:%s, value:%s",
+			throw new ServerException(e, "init property error! {}.{} path:{}, value:{}",
 					propertyInfo.getClazz().getSimpleName(), propertyInfo.getField().getName(), propertyInfo.getPath(),
 					value);
 		}
@@ -225,7 +225,7 @@ public class ConfigServer {
 				} else if (type == Float.class || type == float.class) {
 					result = Float.parseFloat(strValue);
 				} else {
-					throw new TypeMismatchException("not support type:%s", type);
+					throw new TypeMismatchException("not support type:{}", type);
 				}
 			}
 		} else {
@@ -235,7 +235,7 @@ public class ConfigServer {
 				if (type == String.class) {
 					result = "";
 				} else {
-					throw new TypeMismatchException("not support type:%s", type);
+					throw new TypeMismatchException("not support type:{}", type);
 				}
 			}
 		}

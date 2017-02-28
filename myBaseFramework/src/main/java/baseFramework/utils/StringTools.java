@@ -40,18 +40,17 @@ public class StringTools {
 	 * 效率高于String.format()5倍
 	 * 
 	 * @param template
-	 *            %s
-	 * @param args
+	 *            {}
 	 */
 	public static String format(String template, Object... args) {
 		template = String.valueOf(template); // null -> "null"
 
-		// start substituting the arguments into the '%s' placeholders
+		// start substituting the arguments into the '{}' placeholders
 		StringBuilder builder = new StringBuilder(template.length() + 16 * args.length);
 		int templateStart = 0;
 		int i = 0;
 		while (i < args.length) {
-			int placeholderStart = template.indexOf("%s", templateStart);
+			int placeholderStart = template.indexOf("{}", templateStart);
 			if (placeholderStart == -1) {
 				break;
 			}

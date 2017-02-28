@@ -60,7 +60,7 @@ public class AlarmService implements InitializingBean, DisposableBean {
 			}
 
 		} catch (Exception e) {
-			logger.error(StringTools.format("send alarm error! [%s]", msg.toString()), e);
+			logger.error(StringTools.format("send alarm error! [{}]", msg.toString()), e);
 		}
 	}
 
@@ -70,7 +70,7 @@ public class AlarmService implements InitializingBean, DisposableBean {
 				logger.error("alarm sent to queue error : [{}]", data.toString());
 			}
 		} catch (Exception e) {
-			logger.error(StringTools.format("send alarm to queue error! [%s]", data.toString()), e);
+			logger.error(StringTools.format("send alarm to queue error! [{}]", data.toString()), e);
 		}
 	}
 

@@ -1,8 +1,6 @@
 package baseFramework.exception;
 
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.message.Message;
-import org.apache.logging.log4j.message.MessageFactory;
 
 /**
  * @author chao.li
@@ -11,7 +9,6 @@ import org.apache.logging.log4j.message.MessageFactory;
 public class BaseException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
-	private static MessageFactory mf = LogManager.getRootLogger().getMessageFactory();
 	private String formatter;
 	private Object[] params;
 
@@ -83,9 +80,9 @@ public class BaseException extends RuntimeException {
 
 	public Message getMsg() {
 		if (params != null) {
-			return mf.newMessage(formatter, params);
+			return MsgFactory.build(formatter, params);
 		} else {
-			return mf.newMessage(formatter);
+			return MsgFactory.build(formatter);
 		}
 	}
 

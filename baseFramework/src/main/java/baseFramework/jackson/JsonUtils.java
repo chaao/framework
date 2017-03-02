@@ -11,11 +11,12 @@ import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
- * @author lichao
+ * @author evan
  * @date 2015年3月20日
  *
  */
@@ -85,7 +86,20 @@ public class JsonUtils {
 		}
 	}
 
-	public static <T> T fromJson(TreeNode n, Class<T> valueType) {
+	public static <T> T fromJson(String jsonString, TypeReference<T> typeReference) {
+
+		try {
+			return objectMapper.readValue(jsonString, typeReference);
+		} catch (JsonParseException e) {
+			throw new RuntimeException("JsonParseException", e);
+		} catch (JsonMappingException e) {
+			throw new RuntimeException("JsonMappingException", e);
+		} catch (IOException e) {
+			throw new RuntimeException("IOException", e);
+		}
+	}
+
+	public static <T> T fromTree(TreeNode n, Class<T> valueType) {
 
 		try {
 			return objectMapper.treeToValue(n, valueType);
@@ -98,10 +112,10 @@ public class JsonUtils {
 		}
 	}
 
-	public static <T> T fromJson(String jsonString, TypeReference<T> typeReference) {
+	public static JsonNode toTree(String jsonString) {
 
 		try {
-			return objectMapper.readValue(jsonString, typeReference);
+			return objectMapper.readTree(jsonString);
 		} catch (JsonParseException e) {
 			throw new RuntimeException("JsonParseException", e);
 		} catch (JsonMappingException e) {

@@ -99,10 +99,10 @@ public class JsonUtils {
 		}
 	}
 
-	public static <T> T fromTree(TreeNode n, Class<T> valueType) {
+	public static <T> T fromTree(TreeNode treeNode, Class<T> valueType) {
 
 		try {
-			return objectMapper.treeToValue(n, valueType);
+			return objectMapper.treeToValue(treeNode, valueType);
 		} catch (JsonParseException e) {
 			throw new RuntimeException("JsonParseException", e);
 		} catch (JsonMappingException e) {

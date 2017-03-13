@@ -1,5 +1,7 @@
 package baseFramework.config;
 
+import java.util.List;
+
 /**
  * @author chao.li
  * @date 2016年12月16日
@@ -15,6 +17,8 @@ public interface ReloadProperty {
 	 * <br>
 	 * 不要首先就修改原有属性，否则一旦zk数据不规范抛出错误后，会影响现有系统。<br>
 	 * 
+	 * @param fields
+	 *            改变的字段的名字
 	 */
-	public void reloadOnPropertyChange() throws Exception;
+	public void reloadOnPropertyChange(List<String> fields) throws Exception;
 }

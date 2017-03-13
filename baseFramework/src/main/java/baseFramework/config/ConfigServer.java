@@ -2,6 +2,7 @@ package baseFramework.config;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executors;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import baseFramework.exception.ServerException;
 import baseFramework.exception.TypeMismatchException;
@@ -80,7 +82,8 @@ public class ConfigServer {
 	private void reloadOnPropertyChange(PropertyInfo propertyInfo) throws Exception {
 		if (!propertyInfo.isIsstatic() && propertyInfo.getObj() instanceof ReloadProperty) {
 			try {
-				((ReloadProperty) propertyInfo.getObj()).reloadOnPropertyChange();
+				((ReloadProperty) propertyInfo.getObj())
+						.reloadOnPropertyChange(Lists.newArrayList(propertyInfo.getField().getName()));
 				logger.info("reload object({}) success!", propertyInfo.getClazz().getSimpleName());
 			} catch (Exception e) {
 				throw new ServerException(e, "reload object({}) error!", propertyInfo.getClazz().getSimpleName());
@@ -144,6 +147,7 @@ public class ConfigServer {
 			prefix = prefix + "/";
 		}
 
+		List<String> fieldName = Lists.newArrayList();
 		Field[] fields = clazz.getDeclaredFields();
 		for (Field field : fields) {
 			ConfigProperty configProperty = field.getAnnotation(ConfigProperty.class);
@@ -163,11 +167,12 @@ public class ConfigServer {
 					false, clazz, object);
 			initPropertyInfo(propertyInfo);
 			propertyInfos.add(propertyInfo);
+			fieldName.add(field.getName());
 		}
 
 		if (object instanceof ReloadProperty) {
 			try {
-				((ReloadProperty) object).reloadOnPropertyChange();
+				((ReloadProperty) object).reloadOnPropertyChange(fieldName);
 				logger.info("reload object({}) success!", clazz.getSimpleName());
 			} catch (Exception e) {
 				throw new ServerException(e, "reload object({}) error!", clazz.getSimpleName());

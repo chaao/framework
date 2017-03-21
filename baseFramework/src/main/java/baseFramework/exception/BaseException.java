@@ -80,9 +80,9 @@ public class BaseException extends RuntimeException {
 
 	public Message getMsg() {
 		if (params != null) {
-			return MsgFactory.build(formatter, params);
+			return MsgFactory.build(getClass().getSimpleName() + ":" + formatter, params);
 		} else {
-			return MsgFactory.build(formatter);
+			return MsgFactory.build(getClass().getSimpleName() + ":" + formatter);
 		}
 	}
 

@@ -1,5 +1,7 @@
 package baseFramework.utils;
 
+import java.util.Map;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -15,8 +17,9 @@ public class SpringContextHolder implements ApplicationContextAware {
 	/**
 	 * 实现ApplicationContextAware接口的context注入函数, 将其存入静态变量.
 	 */
+	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) {
-		SpringContextHolder.applicationContext = applicationContext; // NOSONAR
+		SpringContextHolder.applicationContext = applicationContext;
 	}
 
 	/**
@@ -27,22 +30,25 @@ public class SpringContextHolder implements ApplicationContextAware {
 		return applicationContext;
 	}
 
-	/**
-	 * 从静态变量ApplicationContext中取得Bean, 自动转型为所赋值对象的类型.
-	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T getBean(String name) {
 		checkApplicationContext();
 		return (T) applicationContext.getBean(name);
 	}
 
-	/**
-	 * 从静态变量ApplicationContext中取得Bean, 自动转型为所赋值对象的类型.
-	 */
-	@SuppressWarnings("unchecked")
+	public static <T> T getBean(String name, Class<T> clazz) {
+		checkApplicationContext();
+		return applicationContext.getBean(name, clazz);
+	}
+
 	public static <T> T getBean(Class<T> clazz) {
 		checkApplicationContext();
-		return (T) applicationContext.getBeansOfType(clazz);
+		return applicationContext.getBean(clazz);
+	}
+
+	public static <T> Map<String, T> getBeansOfType(Class<T> clazz) {
+		checkApplicationContext();
+		return applicationContext.getBeansOfType(clazz);
 	}
 
 	/**

@@ -1,4 +1,4 @@
-package baseFramework.utils;
+package baseFramework.http;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -17,12 +17,14 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
+import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
@@ -31,6 +33,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -190,6 +193,19 @@ public class HttpClientUtil {
 		cacheValue.httpClient = httpClient;
 	}
 
+	public static Map<String, PoolStats> getAllStats() {
+		Map<String, PoolStats> result = Maps.newHashMap();
+		try {
+			for (Entry<String, HttpClientCacheValue> entry : cache.asMap().entrySet()) {
+				HttpClientCacheValue httpClientValue = entry.getValue();
+				result.put(entry.getKey(), httpClientValue.cm.getStats(httpClientValue.httpRoute));
+			}
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+		return result;
+	}
+
 	private static void configTimeout(HttpRequestBase httpRequestBase, int timeout) {
 
 		RequestConfig requestConfig = RequestConfig.custom()// 配置请求的超时设置
@@ -218,42 +234,18 @@ public class HttpClientUtil {
 		httpost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
 	}
 
-	public static Map<String, PoolStats> getAllStats() {
-		Map<String, PoolStats> result = Maps.newHashMap();
-		try {
-			for (Entry<String, HttpClientCacheValue> entry : cache.asMap().entrySet()) {
-				HttpClientCacheValue httpClientValue = entry.getValue();
-				result.put(entry.getKey(), httpClientValue.cm.getStats(httpClientValue.httpRoute));
-			}
-		} catch (Exception e) {
-			logger.error("", e);
-		}
-		return result;
-	}
-
-	public static String post(String url, Map<String, Object> params) throws IOException {
-		return post(url, params, defaultTimeout);
-	}
-
-	public static String post(String url, Map<String, Object> params, int timeout) throws IOException {
+	public static HttpResult post(String url, Map<String, Object> params, Map<String, String> header, int timeout,
+			boolean returnHead, boolean returnString) throws IOException {
 		HttpPost httppost = new HttpPost(url);
 		configTimeout(httppost, timeout);
 		setPostParams(httppost, params);
-		CloseableHttpResponse response = null;
-		HttpEntity entity = null;
-		try {
-			response = getHttpClient(url).execute(httppost, HttpClientContext.create());
-			entity = response.getEntity();
-			return EntityUtils.toString(entity, "utf-8");
-		} finally {
-			// EntityUtils.consume(entity);
-			if (response != null)
-				response.close();
-		}
+		configHander(httppost, header);
+
+		return parseResponse(url, httppost, returnHead, true, returnString);
 	}
 
-	public static String post(String url, String body, ContentType contentType, Map<String, String> header, int timeout)
-			throws IOException {
+	public static HttpResult post(String url, String body, ContentType contentType, Map<String, String> header,
+			int timeout, boolean returnHead, boolean returnString) throws IOException {
 		HttpPost httppost = new HttpPost(url);
 		configTimeout(httppost, timeout);
 		configHander(httppost, header);
@@ -262,35 +254,76 @@ public class HttpClientUtil {
 			contentType = ContentType.DEFAULT_TEXT;
 
 		httppost.setEntity(new StringEntity(body, contentType));
-		CloseableHttpResponse response = null;
-		HttpEntity entity = null;
-		try {
-			response = getHttpClient(url).execute(httppost, HttpClientContext.create());
-			entity = response.getEntity();
-			return EntityUtils.toString(entity, "utf-8");
-		} finally {
-			// EntityUtils.consume(entity);
-			if (response != null)
-				response.close();
-		}
+		return parseResponse(url, httppost, returnHead, true, returnString);
 	}
 
-	public static byte[] postByte(String url, byte[] body, Map<String, String> header, int timeout) throws IOException {
+	public static HttpResult post(String url, byte[] body, Map<String, String> header, int timeout, boolean returnHead,
+			boolean returnString) throws IOException {
 		HttpPost httppost = new HttpPost(url);
 		configTimeout(httppost, timeout);
 		configHander(httppost, header);
 		httppost.setEntity(new ByteArrayEntity(body));
+		return parseResponse(url, httppost, returnHead, true, returnString);
+	}
+
+	public static HttpResult get(String url, Map<String, String> header, int timeout, boolean returnHead,
+			boolean returnString) throws IOException {
+		HttpGet httpget = new HttpGet(url);
+		configTimeout(httpget, timeout);
+		return parseResponse(url, httpget, returnHead, true, returnString);
+	}
+
+	public static HttpResult get(String url, Map<String, String> parameters, Map<String, String> header, int timeout,
+			boolean returnHead, boolean returnString) throws IOException {
+		HttpGet httpget = new HttpGet(getFullUrl(url, parameters));
+		configTimeout(httpget, timeout);
+		return parseResponse(url, httpget, returnHead, true, returnString);
+	}
+
+	public static int getCode(String url) throws ClientProtocolException, IOException {
+		HttpGet httpget = new HttpGet(url);
+		configTimeout(httpget, defaultTimeout);
+		HttpResult result = parseResponse(url, httpget, false, false, false);
+		return result.getCode();
+	}
+
+	private static HttpResult parseResponse(String url, HttpUriRequest request, boolean hasHead, boolean hasBody,
+			boolean stringBody) throws ParseException, IOException {
+		HttpResult result = new HttpResult();
 		CloseableHttpResponse response = null;
 		HttpEntity entity = null;
 		try {
-			response = getHttpClient(url).execute(httppost, HttpClientContext.create());
+
+			response = getHttpClient(url).execute(request, HttpClientContext.create());
+
+			result.setCode(response.getStatusLine().getStatusCode());
+
+			if (hasHead) {
+				Header[] httpHeaders = response.getAllHeaders();
+				if (httpHeaders != null && httpHeaders.length > 0) {
+					Map<String, String> headers = Maps.newHashMap();
+					for (Header httpHeader : httpHeaders) {
+						headers.put(httpHeader.getName(), httpHeader.getValue());
+					}
+					result.setHeader(headers);
+				}
+			}
+
 			entity = response.getEntity();
-			return EntityUtils.toByteArray(entity);
+			if (hasBody) {
+				if (stringBody) {
+					result.setBodyStr(EntityUtils.toString(entity, "utf-8"));
+				} else {
+					result.setBodyByte(EntityUtils.toByteArray(entity));
+				}
+				entity = null;
+			}
 		} finally {
-			// EntityUtils.consume(entity);
+			EntityUtils.consume(entity);
 			if (response != null)
 				response.close();
 		}
+		return result;
 	}
 
 	public static String getFullUrl(String url, Map<String, String> parameters) throws IOException {
@@ -298,6 +331,17 @@ public class HttpClientUtil {
 			url = url + (parameters.size() == 0 ? "" : "&") + formatGetParameters(parameters);
 		} else {
 			url = url + (parameters.size() == 0 ? "" : "?") + formatGetParameters(parameters);
+		}
+		return url;
+	}
+
+	public static String getFullUrl(String url, String queryString) throws IOException {
+		if (StringUtils.isNotBlank(queryString)) {
+			if (url.contains("?")) {
+				url = url + "&" + queryString;
+			} else {
+				url = url + "?" + queryString;
+			}
 		}
 		return url;
 	}
@@ -324,42 +368,6 @@ public class HttpClientUtil {
 			}
 		}
 		return result.toString();
-	}
-
-	public static String get(String url) throws IOException {
-		return get(url, defaultTimeout);
-	}
-
-	public static String get(String url, int timeout) throws IOException {
-		HttpGet httpget = new HttpGet(url);
-		configTimeout(httpget, timeout);
-		CloseableHttpResponse response = null;
-		HttpEntity entity = null;
-		try {
-			response = getHttpClient(url).execute(httpget, HttpClientContext.create());
-			entity = response.getEntity();
-			return EntityUtils.toString(entity, "utf-8");
-		} finally {
-			// EntityUtils.consume(entity);
-			if (response != null)
-				response.close();
-		}
-	}
-
-	public static int getCode(String url) throws ClientProtocolException, IOException {
-		HttpGet httpget = new HttpGet(url);
-		configTimeout(httpget, defaultTimeout);
-		CloseableHttpResponse response = null;
-		HttpEntity entity = null;
-		try {
-			response = getHttpClient(url).execute(httpget, HttpClientContext.create());
-			entity = response.getEntity();
-			return response.getStatusLine().getStatusCode();
-		} finally {
-			EntityUtils.consume(entity);
-			if (response != null)
-				response.close();
-		}
 	}
 
 }

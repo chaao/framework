@@ -21,7 +21,7 @@ public abstract class ContextLauncher {
 	}
 
 	protected void run(String configLocation) {
-
+		Thread.currentThread().setName("ContextLauncher");
 		init();
 		logger.info("##### Server init sucess!");
 
@@ -75,6 +75,10 @@ public abstract class ContextLauncher {
 
 	protected void release(ApplicationContext context) {
 
+	}
+
+	protected void join() throws InterruptedException {
+		Thread.currentThread().join();
 	}
 
 }

@@ -35,18 +35,6 @@ public class DateTools extends org.apache.commons.lang3.time.DateUtils {
 		return truncate(new Date(), Calendar.DATE).getTime();
 	}
 
-	public static long truncateToMinute(long time) {
-		return truncate(new Date(time), Calendar.MINUTE).getTime();
-	}
-
-	public static long truncateToHour(long time) {
-		return truncate(new Date(time), Calendar.HOUR).getTime();
-	}
-
-	public static long truncateToToday(long time) {
-		return truncate(new Date(time), Calendar.DATE).getTime();
-	}
-
 	/**
 	 * 10分钟取整
 	 */

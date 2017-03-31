@@ -1,7 +1,5 @@
 package baseFramework.exception;
 
-import org.apache.logging.log4j.message.Message;
-
 /**
  * @author chao.li
  * @date 2016年11月30日
@@ -31,20 +29,6 @@ public class BaseException extends RuntimeException {
 		this.params = params;
 	}
 
-	/**
-	 * @param message
-	 *            msg
-	 * @param formatter
-	 *            log-msg-formatter
-	 * @param params
-	 *            log-msg-params
-	 */
-	public BaseException(String message, String formatter, Object... params) {
-		super(message);
-		this.formatter = formatter;
-		this.params = params;
-	}
-
 	public BaseException(Throwable cause, String message) {
 		super(message, cause);
 		this.formatter = message;
@@ -62,28 +46,6 @@ public class BaseException extends RuntimeException {
 		super(cause);
 		this.formatter = formatter;
 		this.params = params;
-	}
-
-	/**
-	 * @param message
-	 *            msg
-	 * @param formatter
-	 *            log-msg-formatter
-	 * @param params
-	 *            log-msg-params
-	 */
-	public BaseException(Throwable cause, String message, String formatter, Object... params) {
-		super(message, cause);
-		this.formatter = formatter;
-		this.params = params;
-	}
-
-	public Message getMsg() {
-		if (params != null) {
-			return MsgFactory.build(getClass().getSimpleName() + ":" + formatter, params);
-		} else {
-			return MsgFactory.build(getClass().getSimpleName() + ":" + formatter);
-		}
 	}
 
 	@Override

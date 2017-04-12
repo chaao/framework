@@ -16,7 +16,6 @@ public class BaseException extends RuntimeException {
 	private List<Object> params;
 
 	public BaseException() {
-
 		super();
 		this.formatter = new StringBuilder(getClass().getSimpleName()).append("|");
 	}

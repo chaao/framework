@@ -23,6 +23,11 @@ import org.apache.commons.lang3.time.FastDateFormat;
  */
 public class DateTools extends org.apache.commons.lang3.time.DateUtils {
 
+	public static final long second = 1000;
+	public static final long minute = second * 60;
+	public static final long hour = minute * 60;
+	public static final long day = hour * 24;
+
 	public static long getTruncatedMinute() {
 		return truncate(new Date(), Calendar.MINUTE).getTime();
 	}
@@ -44,14 +49,14 @@ public class DateTools extends org.apache.commons.lang3.time.DateUtils {
 
 		long time = val.getTimeInMillis();
 
-		int millisecs = val.get(Calendar.MILLISECOND);
-		time = time - millisecs;
+		int ms = val.get(Calendar.MILLISECOND);
+		time = time - ms;
 
-		int seconds = val.get(Calendar.SECOND);
-		time = time - (seconds * 1000L);
+		int s = val.get(Calendar.SECOND);
+		time = time - (s * 1000L);
 
-		int minutes = val.get(Calendar.MINUTE);
-		int span = minutes % 10;
+		int m = val.get(Calendar.MINUTE);
+		int span = m % 10;
 		if (span > 0) {
 			time = time - (span * 60000L);
 		}

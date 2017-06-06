@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" monitorInterval="0">
+	<properties>
+		<property name="logPath">log</property>
+	</properties>
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%date{HH:mm:ss.SSS} %logger{36} - %msg%xEx%n" />
+		</Console>
+	</Appenders>
+
+	<Loggers>
+
+		<Logger name="org.springframework" level="warn" additivity="true" />
+		<Logger name="org.apache.http" level="warn" additivity="true" />
+		<Logger name="monitor_falcon" level="error" additivity="true" />
+		<Logger name="monitor" level="error" additivity="true" />
+		<Logger name="agentLog" level="error" additivity="true" />
+		<Logger name="debugLog" level="info" additivity="true" />
+
+		<Root level="info">
+			<AppenderRef ref="Console" />
+		</Root>
+	</Loggers>
+</Configuration>

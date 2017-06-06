@@ -15,7 +15,8 @@
 	<modules>
 		<module>webFramework</module>
 		<module>baseFramework</module>
-	</modules>
+        <module>test</module>
+    </modules>
 
 	<build>
 		<plugins>

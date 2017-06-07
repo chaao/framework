@@ -228,6 +228,8 @@ public class FastExcel implements Closeable {
                         field.setFloat(o, (float) cell.getNumericCellValue());
                     } else if (field.getType().isAssignableFrom(Byte.class) || field.getType().getName().equals("byte")) {
                         field.setByte(o, (byte) cell.getNumericCellValue());
+                    } else if (field.getType().isAssignableFrom(Long.class) || field.getType().getName().equals("long")) {
+                        field.setLong(o, (long) cell.getNumericCellValue());
                     } else if (field.getType().isAssignableFrom(Double.class) || field.getType().getName().equals("double")) {
                         field.setDouble(o, cell.getNumericCellValue());
                     } else if (field.getType().isAssignableFrom(String.class)) {
@@ -334,7 +336,9 @@ public class FastExcel implements Closeable {
                             if (data.getKey().equals(s[j])) {
                                 Field field = data.getValue();
                                 field.setAccessible(true);
-                                cell.setCellValue(field.get(list.get(i)).toString());
+                                Object obj = field.get(list.get(i));
+                                if (obj != null)
+                                    cell.setCellValue(obj.toString());
                                 break;
                             }
                         }

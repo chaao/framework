@@ -1,12 +1,10 @@
 package excel;
 
-import baseFramework.easy.properties.EasyPropertiesUtils;
 import baseFramework.excel.FastExcel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -18,10 +16,9 @@ public class ExcelTest {
     private static final Logger logger = LogManager.getLogger(ExcelTest.class);
 
     public static void main(String[] args) {
-        File file = EasyPropertiesUtils.createFile("excel/data.xlsx");
-        System.out.println(file.getPath());
         try {
-            createExcel(file.getPath());
+            List<ExcelModel>  list = readExcel("D:\\download\\data.xlsx");
+            writeExcel("D:\\download\\test.xlsx", list);
         } catch (IOException e) {
             logger.error("异常", e);
         } catch (InvalidFormatException e) {
@@ -30,8 +27,8 @@ public class ExcelTest {
 
     }
 
-    private static void createExcel(String filePath) throws IOException, InvalidFormatException {
-        FastExcel fastExcel = new FastExcel(filePath);
+    private static List<ExcelModel> readExcel(String filePath) throws IOException, InvalidFormatException {
+        FastExcel fastExcel = new FastExcel(filePath, 1);
         fastExcel.setSheetName("活动信息数据");
         List<ExcelModel> list = fastExcel.parse(ExcelModel.class);
         if (null != list && !list.isEmpty()) {
@@ -39,14 +36,22 @@ public class ExcelTest {
                 logger.info("记录:{}", item.toString());
             }
 
-//            FastExcel create = new FastExcel("E:/data2.xlsx");
-//            create.setSheetName("活动信息数据");
-//            boolean result = create.createExcel(list);
-//            logger.debug("结果:{}", result);
-//            create.close();
         } else {
             logger.info("没有结果");
         }
         fastExcel.close();
+        return list;
+
+
+    }
+    private static void writeExcel(String filePath, List<ExcelModel> list) throws IOException, InvalidFormatException {
+
+        if (list != null && list.size() > 0) {
+            FastExcel writeFile = new FastExcel(filePath,2);
+            writeFile.setSheetName("write");
+            boolean result = writeFile.createExcel(list);
+            logger.debug("结果:{}", result);
+            writeFile.close();
+        }
     }
 }

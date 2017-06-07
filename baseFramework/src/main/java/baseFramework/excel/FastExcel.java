@@ -31,6 +31,7 @@ public class FastExcel implements Closeable {
     private String sheetName;
     private final String excelFilePath;
     private final Workbook workbook;
+    private int flag;//1:read;2:write
 
     /**
      * 构造方法，传入需要操作的excel文件路径
@@ -44,6 +45,31 @@ public class FastExcel implements Closeable {
         this.sheetName = "Sheet1";
         this.excelFilePath = excelFilePath;
         this.workbook = createWorkbook();
+    }
+
+    /**
+     * 构造方法，传入需要操作的excel文件路径
+     *
+     * @param excelFilePath 需要操作的excel文件的路径
+     * @param flag          1:read;2:write
+     * @throws IOException            IO流异常
+     * @throws InvalidFormatException 非法的格式异常
+     */
+    public FastExcel(String excelFilePath, int flag) throws IOException, InvalidFormatException {
+        this.startRow = 0;
+        this.sheetName = "Sheet1";
+        this.excelFilePath = excelFilePath;
+        this.flag = flag;
+        switch (flag) {
+            case 1:
+                this.workbook = createReadWorkbook();
+                break;
+            case 2:
+                this.workbook = createWriteWorkbook();
+                break;
+            default:
+                throw new IllegalArgumentException("error flag");
+        }
     }
 
     /**
@@ -231,6 +257,22 @@ public class FastExcel implements Closeable {
                 field.set(o, cell.getStringCellValue());
                 break;
         }
+    }
+
+
+    private Workbook createReadWorkbook() throws IOException, InvalidFormatException {
+        File file = new File(this.excelFilePath);
+        if (!file.exists()) {
+            throw new IOException("文件不存在");
+        }
+        return WorkbookFactory.create(file);
+    }
+
+    private Workbook createWriteWorkbook() throws IOException, InvalidFormatException {
+        File file = new File(this.excelFilePath);
+        file.delete();
+        file.createNewFile();
+        return new XSSFWorkbook();
     }
 
     private Workbook createWorkbook() throws IOException, InvalidFormatException {

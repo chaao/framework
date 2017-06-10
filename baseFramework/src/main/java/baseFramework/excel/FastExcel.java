@@ -10,6 +10,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -168,19 +169,21 @@ public class FastExcel implements Closeable {
                 }
 
                 for (int i = this.startRow + 1; i <= sheet.getLastRowNum(); i++) {
-                    T t = clazz.newInstance();
                     Row dataRow = sheet.getRow(i);
-                    for (Cell data : dataRow) {
-                        CellReference cellRef = new CellReference(data);
-                        String cellTag = cellRef.getCellRefParts()[2];
-                        String name = titleMap.get(cellTag);
-                        Field field = fieldMap.get(name);
-                        if (null != field) {
-                            field.setAccessible(true);
-                            getCellValue(data, t, field);
+                    if (dataRow != null) {
+                        T t = clazz.newInstance();
+                        for (Cell data : dataRow) {
+                            CellReference cellRef = new CellReference(data);
+                            String cellTag = cellRef.getCellRefParts()[2];
+                            String name = titleMap.get(cellTag);
+                            Field field = fieldMap.get(name);
+                            if (null != field) {
+                                field.setAccessible(true);
+                                getCellValue(data, t, field);
+                            }
                         }
+                        resultList.add(t);
                     }
-                    resultList.add(t);
                 }
             } else {
                 throw new RuntimeException("sheetName:" + this.sheetName + " is not exist");
@@ -220,20 +223,24 @@ public class FastExcel implements Closeable {
                         field.set(o, format.format(cell.getDateCellValue()));
                     }
                 } else {
-                    if (field.getType().isAssignableFrom(Integer.class) || field.getType().getName().equals("int")) {
-                        field.setInt(o, (int) cell.getNumericCellValue());
-                    } else if (field.getType().isAssignableFrom(Short.class) || field.getType().getName().equals("short")) {
-                        field.setShort(o, (short) cell.getNumericCellValue());
-                    } else if (field.getType().isAssignableFrom(Float.class) || field.getType().getName().equals("float")) {
-                        field.setFloat(o, (float) cell.getNumericCellValue());
-                    } else if (field.getType().isAssignableFrom(Byte.class) || field.getType().getName().equals("byte")) {
-                        field.setByte(o, (byte) cell.getNumericCellValue());
-                    } else if (field.getType().isAssignableFrom(Long.class) || field.getType().getName().equals("long")) {
-                        field.setLong(o, (long) cell.getNumericCellValue());
-                    } else if (field.getType().isAssignableFrom(Double.class) || field.getType().getName().equals("double")) {
-                        field.setDouble(o, cell.getNumericCellValue());
-                    } else if (field.getType().isAssignableFrom(String.class)) {
-                        String s = String.valueOf(cell.getNumericCellValue());
+                    Type type = field.getType();
+                    Double numericValue = cell.getNumericCellValue();
+
+                    Object value;
+                    if (type == Integer.class || type == int.class) {
+                        value = numericValue.intValue();
+                    } else if (type == Short.class || type == short.class) {
+                        value = numericValue.shortValue();
+                    } else if (type == Float.class || type == float.class) {
+                        value = numericValue.floatValue();
+                    } else if (type == Byte.class || type == byte.class) {
+                        value = numericValue.byteValue();
+                    } else if (type == Long.class || type == long.class) {
+                        value = numericValue.longValue();
+                    } else if (type == Double.class || type == double.class) {
+                        value = numericValue.doubleValue();
+                    } else if (type == String.class) {
+                        String s = String.valueOf(numericValue);
                         if (s.contains("E")) {
                             s = s.trim();
                             BigDecimal bigDecimal = new BigDecimal(s);
@@ -242,10 +249,11 @@ public class FastExcel implements Closeable {
                         //防止整数判定为浮点数
                         if (s.endsWith(".0"))
                             s = s.substring(0, s.indexOf(".0"));
-                        field.set(o, s);
+                        value = s;
                     } else {
-                        field.set(o, cell.getNumericCellValue());
+                        value = numericValue;
                     }
+                    field.set(o, value);
                 }
                 break;
             case STRING:
@@ -260,7 +268,6 @@ public class FastExcel implements Closeable {
                 break;
         }
     }
-
 
     private Workbook createReadWorkbook() throws IOException, InvalidFormatException {
         File file = new File(this.excelFilePath);

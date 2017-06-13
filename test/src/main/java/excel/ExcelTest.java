@@ -1,12 +1,16 @@
 package excel;
 
-import baseFramework.excel.FastExcel;
+import baseFramework.excel.ExcelReader;
+import baseFramework.excel.ExcelWriter;
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author chao.li
@@ -15,43 +19,26 @@ import java.util.List;
 public class ExcelTest {
     private static final Logger logger = LogManager.getLogger(ExcelTest.class);
 
-    public static void main(String[] args) {
-        try {
-            List<ExcelModel>  list = readExcel("D:\\download\\data.xlsx");
-            writeExcel("D:\\download\\test.xlsx", list);
-        } catch (IOException e) {
-            logger.error("异常", e);
-        } catch (InvalidFormatException e) {
-            logger.error("异常", e);
-        }
+    public static void main(String[] args) throws IOException, InvalidFormatException {
+        ExcelReader reader = new ExcelReader("D:\\download\\test.xlsx");
+        List<String> names = reader.getAllSheetName();
+        System.out.println(names);
 
-    }
-
-    private static List<ExcelModel> readExcel(String filePath) throws IOException, InvalidFormatException {
-        FastExcel fastExcel = new FastExcel(filePath, 1);
-        fastExcel.setSheetName("活动信息数据");
-        List<ExcelModel> list = fastExcel.parse(ExcelModel.class);
-        if (null != list && !list.isEmpty()) {
-            for (ExcelModel item : list) {
-                logger.info("记录:{}", item.toString());
+        Map<String, List<ExcelModel>> map = Maps.newLinkedHashMap();
+        for (String name : names) {
+            if (!StringUtils.contains(name, "Sheet")) {
+                System.out.println(name);
+                List<ExcelModel> models = reader.read(name, ExcelModel.class);
+                map.put(name, models);
             }
-
-        } else {
-            logger.info("没有结果");
         }
-        fastExcel.close();
-        return list;
 
+        reader.close();
 
+        ExcelWriter writer = new ExcelWriter("D:\\download\\test1.xlsx");
+        writer.addSheets(map);
+        writer.writeAndClose();
     }
-    private static void writeExcel(String filePath, List<ExcelModel> list) throws IOException, InvalidFormatException {
 
-        if (list != null && list.size() > 0) {
-            FastExcel writeFile = new FastExcel(filePath,2);
-            writeFile.setSheetName("write");
-            boolean result = writeFile.createExcel(list);
-            logger.debug("结果:{}", result);
-            writeFile.close();
-        }
-    }
 }
+

@@ -42,14 +42,14 @@ public class ExcelReader implements Closeable {
         if (!file.exists()) {
             throw new IOException("文件不存在");
         }
-        this.workbook = WorkbookFactory.create(file);
+        this.workbook = WorkbookFactory.create(file, null, true);
     }
 
     public ExcelReader(File file) throws IOException, InvalidFormatException {
         if (!file.exists()) {
             throw new IOException("文件不存在");
         }
-        this.workbook = WorkbookFactory.create(file);
+        this.workbook = WorkbookFactory.create(file, null, true);
     }
 
     public List<String> getAllSheetName() {

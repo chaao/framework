@@ -27,4 +27,20 @@ public class Base64Tools {
 		}
 	}
 
+	public static String encodeUrl(String src) {
+		if (StringUtils.isNotBlank(src))
+			return Base64.getUrlEncoder().encodeToString(src.getBytes(Charsets.UTF_8));
+		else
+			return null;
+	}
+
+	public static String decodeUrl(String src) {
+		if (StringUtils.isNotBlank(src)) {
+			byte[] decode = Base64.getUrlDecoder().decode(src);
+			return new String(decode, Charsets.UTF_8);
+		} else {
+			return null;
+		}
+	}
+
 }
